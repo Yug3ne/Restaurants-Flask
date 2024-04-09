@@ -21,7 +21,7 @@ class Pizza(db.Model):
     name = db.Column(db.String)
     ingredients = db.Column(db.String)
 
-    restaurant_pizzas = db.relationship('Restaurant_Pizza', backref='restaurant')
+    restaurant_pizzas = db.relationship('Restaurant_Pizza', backref='pizza')
 
 
 class Restaurant_Pizza(db.Model):
