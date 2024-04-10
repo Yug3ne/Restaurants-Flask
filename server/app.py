@@ -79,7 +79,7 @@ class RestaurantsId(Resource):
             db.session.delete(restaurant)
             db.session.commit()
             return make_response(
-                jsonify(message = "Restaurat deleted successfully"),
+                jsonify([]),
                 204
             )
         else:
