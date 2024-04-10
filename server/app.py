@@ -1,4 +1,4 @@
-from flask import Flask, make_response, jsonify
+from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_restful import Resource, Api
 
@@ -71,7 +71,55 @@ class RestaurantsId(Resource):
                 jsonify({"error": "Restaurant not found"}),
                 404
             )
+        
+    def delete(self, id):
+        restaurant = Restaurant.query.filter_by(id=id).first()
+        if restaurant:
+            Restaurant_Pizza.query.filter_by(restaurant_id = id).delete()
+            db.session.delete(restaurant)
+            db.session.commit()
+            return make_response(
+                jsonify(message = "Restaurat deleted successfully"),
+                204
+            )
+        else:
+            return make_response(
+                jsonify({"error": "Restaurant not found"}),
+                404
+            )
 api.add_resource(RestaurantsId, '/api/v1/restaurants/<int:id>')
+
+class Pizzas(Resource):
+    def get(self):
+        pizzas = []
+        for pizza in Pizza.query.all():
+            pizza_dict = {
+                "id": pizza.id,
+                "name": pizza.name,
+                "ingredients": pizza.ingredients
+            }
+            pizzas.append(pizza_dict)
+        return make_response(
+            jsonify(pizzas),
+            200
+        )
+api.add_resource(Pizzas, '/api/v1/pizzas')
+
+class RestaurantPizzas(Resource): 
+    def post(self):
+        data = request.json
+        try:
+            restaurant_pizza = Restaurant_Pizza(price=data['price'], pizza_id=data['pizza_id'], restaurant_id=data['restaurant_id'])
+            db.session.add(restaurant_pizza)
+            db.session.commit()
+            pizza = Pizza.query.get(restaurant_pizza.pizza_id)
+            return jsonify({'id': pizza.id, 'name': pizza.name, 'ingredients': pizza.ingredients})
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return jsonify({"errors": ["validation errors"]}), 400
+
+api.add_resource(RestaurantPizzas, '/api/v1/restaurant_pizzas')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
